@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maquininha PagBank Simulada</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f0f0f0;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .maquininha {
+      background-color: #00c569;
+      width: 320px;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      overflow: hidden;
+      padding: 20px;
+      color: #fff;
+    }
+
+    .tela {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .tela.ativa {
+      display: flex;
+    }
+
+    .tela.falha {
+      background-color: red;
+      color: white;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #00c569;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .titulo {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .valor {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      margin: 20px 0;
+      background: white;
+      color: #00c569;
+      padding: 10px;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    .teclado {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .teclado button {
+      font-size: 22px;
+      padding: 15px;
+      background-color: white;
+      color: #00c569;
+      font-weight: bold;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="maquininha">
+  <!-- Tela 1 -->
+  <div id="tela1" class="tela ativa">
+    <div class="titulo">Digite o valor da venda</div>
+    <div class="valor" id="displayValor">0</div>
+    <div class="teclado">
+      <button onclick="digitarValor('1')">1</button>
+      <button onclick="digitarValor('2')">2</button>
+      <button onclick="digitarValor('3')">3</button>
+      <button onclick="digitarValor('4')">4</button>
+      <button onclick="digitarValor('5')">5</button>
+      <button onclick="digitarValor('6')">6</button>
+      <button onclick="digitarValor('7')">7</button>
+      <button onclick="digitarValor('8')">8</button>
+      <button onclick="digitarValor('9')">9</button>
+      <button onclick="digitarValor('.')">.</button>
+      <button onclick="digitarValor('0')">0</button>
+      <button onclick="apagarValor()">⌫</button>
+    </div>
+    <button onclick="proximaTelaValor()">Próximo</button>
+  </div>
+
+  <!-- Tela 2 -->
+  <div id="tela2" class="tela">
+    <div class="titulo">Escolha o tipo de pagamento</div>
+    <button onclick="escolherTipo('debito')">Débito</button>
+    <button onclick="escolherTipo('credito')">Crédito</button>
+  </div>
+
+  <!-- Tela 3 -->
+  <div id="tela3" class="tela">
+    <div class="titulo">Insira o cartão</div>
+    <button onclick="proximaTelaSenha()">Cartão inserido</button>
+  </div>
+
+  <!-- Tela 4 -->
+  <div id="tela4" class="tela">
+    <div class="titulo">Digite a senha</div>
+    <div class="valor" id="displaySenha">••••••</div>
+    <div class="teclado">
+      <button onclick="digitarSenha('1')">1</button>
+      <button onclick="digitarSenha('2')">2</button>
+      <button onclick="digitarSenha('3')">3</button>
+      <button onclick="digitarSenha('4')">4</button>
+      <button onclick="digitarSenha('5')">5</button>
+      <button onclick="digitarSenha('6')">6</button>
+      <button onclick="digitarSenha('7')">7</button>
+      <button onclick="digitarSenha('8')">8</button>
+      <button onclick="digitarSenha('9')">9</button>
+      <button onclick="apagarSenha()">⌫</button>
+      <button onclick="digitarSenha('0')">0</button>
+      <button disabled></button> <!-- botão vazio pra alinhar -->
+    </div>
+    <button onclick="erroPagamento()">Finalizar</button>
+  </div>
+
+  <!-- Tela Processando -->
+  <div id="telaProcessando" class="tela">
+    <div class="titulo">Processando...</div>
+  </div>
+
+  <!-- Tela 5: Falha -->
+  <div id="telaFalha" class="tela falha">
+    <div class="titulo">Falha de processamento</div>
+    <button onclick="mostrarSenha()">OK</button>
+  </div>
+
+  <!-- Tela 6: Mostrar senha -->
+  <div id="tela6" class="tela">
+    <div class="titulo">Senha digitada</div>
+    <div class="valor" id="senha-digitada">**</div>
+    <button onclick="reiniciar()">Nova Venda</button>
+  </div>
+</div>
+
+<script>
+  let senhaDigitada = '';
+  let valorDigitado = '';
+  let senha = '';
+
+  function trocarTela(atual, proxima) {
+    document.getElementById(atual).classList.remove('ativa');
+    document.getElementById(proxima).classList.add('ativa');
+  }
+
+  function digitarValor(num) {
+    if (valorDigitado.length < 9) {
+      valorDigitado += num;
+      document.getElementById('displayValor').innerText = valorDigitado || '0';
+    }
+  }
+
+  function apagarValor() {
+    valorDigitado = valorDigitado.slice(0, -1);
+    document.getElementById('displayValor').innerText = valorDigitado || '0';
+  }
+
+  function proximaTelaValor() {
+    if (valorDigitado.length > 0) {
+      trocarTela('tela1', 'tela2');
+    }
+  }
+
+  function escolherTipo() {
+    trocarTela('tela2', 'tela3');
+  }
+
+  function proximaTelaSenha() {
+    trocarTela('tela3', 'tela4');
+  }
+
+  function digitarSenha(num) {
+    if (senha.length < 6) {
+      senha += num;
+      document.getElementById('displaySenha').innerText = '•'.repeat(senha.length);
+    }
+  }
+
+  function apagarSenha() {
+    senha = senha.slice(0, -1);
+    document.getElementById('displaySenha').innerText = senha.length > 0 ? '•'.repeat(senha.length) : '••••••';
+  }
+
+  function erroPagamento() {
+    senhaDigitada = senha;
+    trocarTela('tela4', 'telaProcessando');
+
+    setTimeout(() => {
+      trocarTela('telaProcessando', 'telaFalha');
+    }, 15000); // 15 segundos
+  }
+
+  function mostrarSenha() {
+    document.getElementById("senha-digitada").innerText = senhaDigitada;
+    trocarTela('telaFalha', 'tela6');
+  }
+
+  function reiniciar() {
+    valorDigitado = '';
+    senha = '';
+    senhaDigitada = '';
+    document.getElementById("displayValor").innerText = '0';
+    document.getElementById("displaySenha").innerText = '••••••';
+    document.getElementById("senha-digitada").innerText = '**';
+    trocarTela('tela6', 'tela1');
+  }
+</script>
+
+</body>
+</html>
